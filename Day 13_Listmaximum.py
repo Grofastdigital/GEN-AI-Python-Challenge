@@ -1,29 +1,50 @@
-# Day 13/50 - AI Python Challenge
-# Task: Find the largest number in a list without using max() function
+import streamlit as st
+import pandas as pd
+import plotly.express as px
 
-def find_max_in_list(numbers):
-    """
-    Finds the largest number in a list without using max().
-    """
-    if not numbers:
-        return None  # handle empty list gracefully
+st.set_page_config(page_title="Day 13/50: Advanced Max Finder", page_icon="📈")
 
-    max_number = numbers[0]  # assume first element is max
-    for num in numbers:
-        if num > max_number:
-            max_number = num  # update if a larger number is found
-    return max_number
+st.title("🦅 Day 13/50: Advanced List Maximum Finder 📈")
 
-if __name__ == "__main__":
-    # Sample test list
-    test_list = [12, 45, 23, 89, 156, 34, 90, 10]
+nums = st.text_area("🔢 Enter numbers separated by commas (e.g., 10, 20, 30):")
 
-    print(f"List to check: {test_list}")
+if st.button("🚀 Find Maximum"):
+    try:
+        numbers = [float(n.strip()) for n in nums.split(",") if n.strip()]
+        if not numbers:
+            st.warning("⚠️ Please enter at least one valid number.")
+        else:
+            max_num = numbers[0]
+            steps = []
 
-    largest = find_max_in_list(test_list)
+            for idx, n in enumerate(numbers[1:], start=2):
+                status = ""
+                if n > max_num:
+                    max_num = n
+                    status = "✅ Updated Max"
+                else:
+                    status = "❌ No Change"
+                steps.append({"Step": f"Compare with input #{idx}", "Value": n, "Max So Far": max_num, "Status": status})
 
-    if largest is not None:
-        print(f"The largest number in the list is: {largest}")
-    else:
-        print("The list is empty. No maximum value found.")
+            df_steps = pd.DataFrame(steps)
 
+            st.markdown("### 🪄 Step-by-Step Comparison Table")
+            st.dataframe(df_steps.style.applymap(
+                lambda val: "background-color: #d4edda" if "✅" in str(val) else ""))
+
+            st.success(f"🎯 **Maximum number found: `{max_num}` ✅**")
+
+            st.markdown("### 📊 Visual Representation of All Numbers")
+            df_plot = pd.DataFrame({"Number": numbers})
+            fig = px.bar(df_plot, y="Number", text="Number",
+                         color=df_plot["Number"] == max_num,
+                         color_discrete_map={True: "green", False: "lightblue"},
+                         title="Entered Numbers Highlighting the Maximum",
+                         labels={"color": "Is Maximum?"})
+            fig.update_traces(textposition="outside")
+            st.plotly_chart(fig, use_container_width=True)
+
+            st.info("✨ Keep challenging yourself daily to master data analysis skills!")
+
+    except Exception as e:
+        st.error(f"❌ Invalid input. Please enter only numbers separated by commas.\n\nDetails: {e}")
